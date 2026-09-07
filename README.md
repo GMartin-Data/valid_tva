@@ -30,9 +30,19 @@ docker compose up -d
 
 # 3. Dépendances Python
 uv sync
+
+# 4. Chargement du référentiel (idempotent : rejouable sans doublon,
+#    et sans écraser les verdicts VIES déjà acquis)
+uv run python -m valid_tva.load
+
+# Répartition des verdicts structurels par motif
+docker exec meridian_tva_db psql -U meridian -d tva -f - < sql/motive_distribution.sql
 ```
 
-*(sections à venir : chargement du référentiel, campagne VIES, API, rapport)*
+Les variables `POSTGRES_*` (host, port, user, password, db) surchargent les
+défauts si besoin — aucun fichier d'environnement n'est requis.
+
+*(sections à venir : campagne VIES, API, rapport)*
 
 ## Structure
 

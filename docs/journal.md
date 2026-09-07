@@ -75,6 +75,21 @@
   une partie des doublons est d'abord rejetée structurellement — l'ordre
   des tamis conditionne les comptages.
 
+### Schéma PostgreSQL et chargeur idempotent (test-first)
+
+- Schéma 2 tables (`sql/schema.sql`) : `referential_rows` (reçu + déduit) /
+  `vat_numbers` (numéros canoniques, futur porteur de l'observé VIES).
+  Invariants en CHECK : candidat ⇔ motif NULL ; lien vat_number ⇒ candidat.
+- Contrat testé avant implémentation (8 tests d'intégration, base jetable
+  `tva_test`, skip propre sans Docker — mécanique détaillée en note 06) :
+  rechargement sans doublon ET sans écrasement des verdicts VIES acquis
+  (« on écrase le recalculable, on protège le périssable »).
+- Chargement réel : 10 000 lignes, 6 624 candidats, 6 311 numéros distincts ;
+  la requête SQL de répartition recoupe l'entonnoir à l'unité près ;
+  double chargement vérifié sans dérive. **Résultat testable J1 atteint.**
+- CI renforcée : service PostgreSQL (même image/port que le compose) — les
+  tests d'intégration tournent aussi sur GitHub, symétrie local/CI.
+
 ### Blocages / points d'attention
 
 - Hook de permissions local : écriture de `.env.example` refusée (règle
