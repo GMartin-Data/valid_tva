@@ -30,3 +30,7 @@ et exposer une API REST (verdict + origine + fraîcheur).
 - D3 : GB/UK → invalide structurel, motif `NON_EU_COUNTRY` (distinct de
   `UNKNOWN_COUNTRY` pour ZZ/QQ/XX) ; jamais envoyé à VIES — VIES répond
   INVALID_INPUT (hors périmètre), il n'invalide pas.
+- D4 : validation structurelle = format par pays (regex) + clés de contrôle
+  implémentées à la main, testées contre `python-stdnum` (oracle en tests
+  uniquement, jamais en prod). Incrémentale : format d'abord, clés pays par
+  pays, dégradation gracieuse si le temps manque.
