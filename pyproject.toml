@@ -38,3 +38,7 @@ ignore = [
 [tool.pytest.ini_options]
 pythonpath = ["src", "tests"]
 testpaths = ["tests"]
+
+[build-system]
+requires = ["uv_build>=0.9"]
+build-backend = "uv_build"
