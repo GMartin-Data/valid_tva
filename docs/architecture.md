@@ -20,10 +20,25 @@
 
 ## Réduction des appels VIES
 
-*(chiffres définitifs après chargement)* — Extrapolation naïve mesurée :
-10 000 appels séquentiels = 1,1 h à 5,1 h selon la latence observée
-(min 33 ms, médiane 0,39 s, moyenne 1,85 s, max 8,6 s — latence dépendante
-de l'État membre interrogé).
+Approche naïve mesurée : 10 000 appels séquentiels = 1,1 h à 5,1 h selon la
+latence observée (min 33 ms, médiane 0,39 s, moyenne 1,85 s, max 8,6 s —
+latence dépendante de l'État membre interrogé).
+
+Entonnoir structurel (mesuré sur le référentiel complet) :
+
+| Étape | Lignes écartées | Motif |
+|---|---|---|
+| Vide (y c. déguisé) | 261 | `MISSING` |
+| Pays inexistant (ZZ/QQ/XX) | 311 | `UNKNOWN_COUNTRY` |
+| GB/UK post-Brexit | 208 | `NON_EU_COUNTRY` |
+| Format impossible | 1 264 | `BAD_FORMAT` |
+| Clé de contrôle fausse | 1 332 | `BAD_CHECK_DIGIT` |
+| Doublons parmi les candidats | 313 | dédup (pays + numéro normalisé) |
+
+**10 000 lignes → 6 311 appels VIES (−36,9 %, soit 3 689 appels évités).**
+Le tamis clé à lui seul économise 1 332 appels (~40 min à la latence
+moyenne) — il justifie l'implémentation des algorithmes nationaux (D4).
+Les 532 numéros à préfixe reconstruit (D1) sont tous devenus candidats.
 
 ## Durée de validité d'un verdict et traitement des indéterminés
 

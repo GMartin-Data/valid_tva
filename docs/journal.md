@@ -59,6 +59,22 @@
   (ruff + pytest à chaque push, badge dans le README). Le job pytest
   devient bloquant dès le premier fichier de test.
 
+### Module structurel (test-first) et entonnoir chiffré
+
+- Suite rouge d'abord (91 tests, commit `test:`), puis implémentation en
+  trois paliers jusqu'au vert : normalisation (D1/D2), tamis pays+format,
+  clés de contrôle des 10 pays. Oracle `python-stdnum` (tests uniquement) :
+  accord complet sur 21 ancres réelles et ~200 mutations systématiques.
+- **Entonnoir sur les 10 000 lignes** (`exploration/03_funnel.py`) :
+  261 MISSING, 311 UNKNOWN_COUNTRY, 208 NON_EU_COUNTRY, 1 264 BAD_FORMAT,
+  1 332 BAD_CHECK_DIGIT, puis 313 doublons parmi les 6 624 candidats →
+  **6 311 appels VIES au lieu de 10 000 (−36,9 %)**.
+- Enseignements : le tamis clé économise à lui seul 1 332 appels (valide la
+  stratégie B/D4) ; les 532 préfixes reconstruits (D1) sont tous candidats ;
+  les doublons « candidats » (313) diffèrent des doublons bruts (438) car
+  une partie des doublons est d'abord rejetée structurellement — l'ordre
+  des tamis conditionne les comptages.
+
 ### Blocages / points d'attention
 
 - Hook de permissions local : écriture de `.env.example` refusée (règle
