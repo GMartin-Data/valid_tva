@@ -51,8 +51,25 @@
 - Les 10 numéros testés sont tous `valid=False` ; conventions de « pas
   d'info » variables selon l'État (`name` = `'---'` ou `''`).
 
+### Garde-fous qualité (workflow main-direct)
+
+- Constat : commits directs sur `main` ≠ absence de CI — on a écarté la
+  cérémonie PR, pas le contrôle qualité. Mise en place : **pre-commit**
+  (ruff check + format, format Conventional Commits) + **GitHub Actions**
+  (ruff + pytest à chaque push, badge dans le README). Le job pytest
+  devient bloquant dès le premier fichier de test.
+
 ### Blocages / points d'attention
 
 - Hook de permissions local : écriture de `.env.example` refusée (règle
   `.env*`) → valeurs par défaut documentées dans le README, le compose
   porte ses propres défauts. Sans impact.
+- **Premier run CI rouge (`EXE001`)** alors que le lint passait en local.
+  Cause racine : aucune config ruff versionnée dans le repo — en local,
+  ruff retombait silencieusement sur la config utilisateur
+  (`~/.config/ruff/`), la CI appliquait ses règles par défaut (qui
+  incluent EXE001 : shebang sur fichier non exécutable). Résolution :
+  config `[tool.ruff]` committée dans `pyproject.toml` (source de vérité
+  unique local/hooks/CI) + `chmod +x` des scripts à shebang. Leçon : une
+  config de lint non versionnée rend le lint non reproductible — la CI
+  l'a révélé dès son premier run.
