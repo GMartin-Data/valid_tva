@@ -34,6 +34,23 @@
   comportement réel de VIES sur un préfixe GB (appels manuels J2).
   Différer n'est pas fuir : on sait exactement quelle information on attend.
 
+### Mesure VIES (`exploration/02_vies_timing.py`)
+
+- 10 appels réels (1 par pays UE du référentiel), endpoint REST
+  `check-vat-number`. Latence **bimodale** : min 33 ms, médiane 0,39 s,
+  moyenne 1,85 s, max 8,6 s — VIES relaie vers chaque administration
+  nationale, la lenteur dépend de l'État membre (FR 8,6 s, SE/BE ~4 s,
+  IT/NL/PL ~33 ms).
+- **Extrapolation naïve sur 10 000 numéros : de ~1,1 h (médiane seule) à
+  ~5,1 h (moyenne observée), hors retries.** La réduction du volume n'est pas
+  cosmétique, elle conditionne la faisabilité de la campagne.
+- Sondes : `GB...` et `ZZ...` reçoivent la même réponse
+  `actionSucceed=false / INVALID_INPUT` — VIES **refuse l'entrée** (hors
+  périmètre) au lieu de répondre invalide. Un numéro GB ne peut être ni
+  validé ni invalidé par VIES → donnée qui débloque la décision D3.
+- Les 10 numéros testés sont tous `valid=False` ; conventions de « pas
+  d'info » variables selon l'État (`name` = `'---'` ou `''`).
+
 ### Blocages / points d'attention
 
 - Hook de permissions local : écriture de `.env.example` refusée (règle
