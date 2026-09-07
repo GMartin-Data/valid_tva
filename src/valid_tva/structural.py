@@ -13,6 +13,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
 
+from valid_tva import keys
 from valid_tva.normalize import canonicalize
 
 #: EU member state codes as VIES knows them (Greece is EL, not GR;
@@ -104,9 +105,9 @@ FORMATS: dict[str, re.Pattern[str]] = {
     "SE": re.compile(r"\d{10}01"),
 }
 
-#: Hand-rolled check-digit validators, filled country by country (D4).
-#: A country absent from this table is NOT checked (graceful degradation).
-KEY_CHECKS: dict[str, Callable[[str], bool]] = {}
+#: Hand-rolled check-digit validators (valid_tva.keys, D4). A country
+#: absent from this registry is NOT key-checked (graceful degradation).
+KEY_CHECKS: dict[str, Callable[[str], bool]] = keys.KEY_CHECKS
 
 
 def check_format(country: str, national: str) -> bool:
