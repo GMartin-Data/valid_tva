@@ -1,5 +1,7 @@
 # valid_tva — Validation de numéros de TVA intracommunautaire
 
+![CI](https://github.com/GMartin-Data/valid_tva/actions/workflows/ci.yml/badge.svg)
+
 Qualification d'un référentiel de 10 000 numéros de TVA (Meridian Distribution) :
 **valide / invalide / indéterminé**, via normalisation, validation structurelle,
 vérification VIES, et une API REST consultée avant chaque facturation hors taxe.
