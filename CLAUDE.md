@@ -27,4 +27,6 @@ et exposer une API REST (verdict + origine + fraîcheur).
   (`prefix_added`).
 - D2 : doublon = même couple (pays, numéro normalisé) après reconstruction ;
   aucune ligne supprimée, verdict porté par le numéro distinct.
-- D3 : verdict GB/UK — différé jusqu'aux appels VIES manuels (J2).
+- D3 : GB/UK → invalide structurel, motif `NON_EU_COUNTRY` (distinct de
+  `UNKNOWN_COUNTRY` pour ZZ/QQ/XX) ; jamais envoyé à VIES — VIES répond
+  INVALID_INPUT (hors périmètre), il n'invalide pas.
