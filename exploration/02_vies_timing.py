@@ -27,6 +27,7 @@ PAUSE_S = 0.5
 
 
 def normalize(value: str) -> str:
+    """Uppercase and drop every non-alphanumeric character."""
     return re.sub(r"[^A-Z0-9]", "", value.upper())
 
 
@@ -45,6 +46,7 @@ def pick_samples() -> list[tuple[str, str]]:
 
 
 def check(client: httpx.Client, country: str, number: str) -> tuple[float, int, dict]:
+    """Call VIES for one number; return (elapsed seconds, HTTP status, JSON body)."""
     start = time.perf_counter()
     resp = client.post(VIES_URL, json={"countryCode": country, "vatNumber": number})
     elapsed = time.perf_counter() - start
@@ -56,6 +58,7 @@ def check(client: httpx.Client, country: str, number: str) -> tuple[float, int, 
 
 
 def main() -> None:
+    """Time sequential VIES calls, probe out-of-scope countries, extrapolate."""
     samples = pick_samples()[:TIMING_CALLS]
     timings: list[float] = []
 

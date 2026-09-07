@@ -29,6 +29,7 @@ def normalize(value: str) -> str:
 
 
 def main() -> None:
+    """Print counts for countries, empties, noise, prefixes, duplicates, sources."""
     with open(PATH, encoding="utf-8") as fh:
         rows = list(csv.DictReader(fh))
     print(f"rows: {len(rows)}, columns: {list(rows[0].keys())}")
