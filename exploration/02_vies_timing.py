@@ -93,7 +93,9 @@ def main() -> None:
     median = statistics.median(timings)
     mean = statistics.fmean(timings)
     print(f"\n--- stats over {len(timings)} calls ---")
-    print(f"  min {min(timings):.2f}s  median {median:.2f}s  mean {mean:.2f}s  max {max(timings):.2f}s")
+    print(
+        f"  min {min(timings):.2f}s  median {median:.2f}s  mean {mean:.2f}s  max {max(timings):.2f}s"
+    )
 
     print("\n--- naive extrapolation: 10 000 sequential calls ---")
     for label, per_call in [

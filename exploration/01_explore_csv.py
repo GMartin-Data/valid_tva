@@ -39,7 +39,9 @@ def main() -> None:
     for country, n in Counter(r["pays_declare"] for r in rows).most_common():
         print(f"  {country!r}: {n}")
 
-    empties = Counter(repr(r["numero_tva"]) for r in rows if is_emptyish(r["numero_tva"]))
+    empties = Counter(
+        repr(r["numero_tva"]) for r in rows if is_emptyish(r["numero_tva"])
+    )
     print(f"\n--- empty-ish numero_tva: {sum(empties.values())} rows ---")
     for form, n in empties.most_common():
         print(f"  {form}: {n}")
@@ -52,38 +54,50 @@ def main() -> None:
     n_noisy = sum(
         1
         for r in rows
-        if not is_emptyish(r["numero_tva"]) and re.search(r"[^A-Za-z0-9]", r["numero_tva"])
+        if not is_emptyish(r["numero_tva"])
+        and re.search(r"[^A-Za-z0-9]", r["numero_tva"])
     )
     n_lower = sum(
         1
         for r in rows
-        if not is_emptyish(r["numero_tva"]) and any(c.islower() for c in r["numero_tva"])
+        if not is_emptyish(r["numero_tva"])
+        and any(c.islower() for c in r["numero_tva"])
     )
-    print(f"\n--- noise: {n_noisy} rows with non-alphanumeric chars, {n_lower} with lowercase ---")
+    print(
+        f"\n--- noise: {n_noisy} rows with non-alphanumeric chars, {n_lower} with lowercase ---"
+    )
     for char, n in noise.most_common():
         print(f"  {char!r}: {n} rows")
 
     usable = [r for r in rows if not is_emptyish(r["numero_tva"])]
-    no_prefix = [r for r in usable if not re.match(r"^[A-Z]{2}", normalize(r["numero_tva"]))]
+    no_prefix = [
+        r for r in usable if not re.match(r"^[A-Z]{2}", normalize(r["numero_tva"]))
+    ]
     mismatch = [
         r
         for r in usable
         if re.match(r"^[A-Z]{2}", normalize(r["numero_tva"]))
         and normalize(r["numero_tva"])[:2] != r["pays_declare"].strip().upper()
     ]
-    print(f"\n--- prefix: {len(no_prefix)} rows without country prefix, "
-          f"{len(mismatch)} prefix/country mismatches ---")
+    print(
+        f"\n--- prefix: {len(no_prefix)} rows without country prefix, "
+        f"{len(mismatch)} prefix/country mismatches ---"
+    )
     print(f"  no-prefix by country: {Counter(r['pays_declare'] for r in no_prefix)}")
 
     raw_counts = Counter(r["numero_tva"] for r in usable)
     norm_counts = Counter(normalize(r["numero_tva"]) for r in usable)
     raw_excess = sum(n - 1 for n in raw_counts.values() if n > 1)
     norm_excess = sum(n - 1 for n in norm_counts.values() if n > 1)
-    print(f"\n--- duplicates: raw excess rows {raw_excess}, normalized excess rows {norm_excess} ---")
+    print(
+        f"\n--- duplicates: raw excess rows {raw_excess}, normalized excess rows {norm_excess} ---"
+    )
 
     print(f"\n--- source_saisie: {dict(Counter(r['source_saisie'] for r in rows))} ---")
     dates = sorted(r["date_saisie"] for r in rows if r["date_saisie"].strip())
-    print(f"--- date_saisie: {dates[0]} -> {dates[-1]}, empty: {len(rows) - len(dates)} ---")
+    print(
+        f"--- date_saisie: {dates[0]} -> {dates[-1]}, empty: {len(rows) - len(dates)} ---"
+    )
 
 
 if __name__ == "__main__":
