@@ -37,12 +37,51 @@ uv run python -m valid_tva.load
 
 # Répartition des verdicts structurels par motif
 docker exec meridian_tva_db psql -U meridian -d tva -f - < sql/motive_distribution.sql
+
+# 5. Campagne de vérification VIES (rejouable : les indéterminés et les
+#    verdicts périmés sont repris à chaque passage ; --limit = mode échantillon)
+uv run python -m valid_tva.campaign --limit 200
+
+# 6. API de vérification
+uv run uvicorn --factory valid_tva.api:app
 ```
 
 Les variables `POSTGRES_*` (host, port, user, password, db) surchargent les
 défauts si besoin — aucun fichier d'environnement n'est requis.
 
-*(sections à venir : campagne VIES, API, rapport)*
+## API
+
+`GET /vat/{numero}` accepte un numéro même bruité (`fi 2660-63.69`), avec
+`?country=XX` pour reconstruire un préfixe pays manquant. Tout verdict est un
+`200` — « invalide » est une réponse, pas une erreur. Documentation interactive
+sur `/docs` (OpenAPI sur `/openapi.json`).
+
+```bash
+curl http://127.0.0.1:8000/vat/BE0415621046
+```
+
+```json
+{
+    "input": "BE0415621046",
+    "vat_number": "BE0415621046",
+    "verdict": "valid",
+    "origin": "vies",
+    "motive": null,
+    "checked_at": "2026-09-08T10:06:52.095000Z",
+    "stale": false,
+    "name": "NV PLUTO",
+    "address": "Merellaan 46\n9400 Ninove"
+}
+```
+
+- `verdict` : `valid` / `invalid` / `unknown` (l'indéterminé du brief).
+- `origin` : `structural` (rejeté avant VIES, `motive` renseigné), `vies`
+  (verdict observé en campagne), `never_checked` (aucune tentative encore).
+- Fraîcheur : `checked_at` (horodatage VIES) + `stale: true` au-delà de
+  7 jours — le verdict est toujours servi, jamais retenu (décision D5) ;
+  l'API ne contacte jamais VIES elle-même.
+
+*(section à venir : rapport de réconciliation)*
 
 ## Structure
 
