@@ -34,12 +34,20 @@ CheckFn = Callable[[str, str], dict]
 VIES_URL = "https://ec.europa.eu/taxation_customs/vies/rest-api/check-vat-number"
 
 SELECT_TARGETS = """
+    -- Round-robin across countries: consecutive calls spread over member
+    -- states (per-MS saturation, 2026-09-08 sample run), deterministic.
     SELECT vat_number, country, national
-    FROM vat_numbers
-    WHERE vies_status IS NULL
-       OR vies_status = 'unknown'
-       OR vies_checked_at < now() - make_interval(days => %s)
-    ORDER BY vat_number
+    FROM (
+        SELECT vat_number, country, national,
+               row_number() OVER (
+                   PARTITION BY country ORDER BY vat_number
+               ) AS rank_in_country
+        FROM vat_numbers
+        WHERE vies_status IS NULL
+           OR vies_status = 'unknown'
+           OR vies_checked_at < now() - make_interval(days => %s)
+    ) targets
+    ORDER BY rank_in_country, country, vat_number
 """
 
 UPDATE_VERDICT = """
@@ -113,7 +121,11 @@ def run_campaign(
         else:
             status, checked_at, name, address = _verdict(body)
             if status == "unknown":
-                log.warning("wrapped_error", number=vat_number, body_keys=sorted(body))
+                log.warning(
+                    "wrapped_error",
+                    number=vat_number,
+                    errors=body.get("errorWrappers", "no-error-wrapper"),
+                )
         conn.execute(UPDATE_VERDICT, (status, checked_at, name, address, vat_number))
         conn.commit()
         summary.checked += 1

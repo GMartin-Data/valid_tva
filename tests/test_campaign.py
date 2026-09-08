@@ -129,19 +129,27 @@ class TestSelection:
         assert summary.checked == 3
         assert status_of(conn, "PT50072677")[0] == "invalid"  # untouched
 
-    def test_selection_order_is_deterministic(self, conn) -> None:
-        """Numbers are called in vat_number order (resumable, predictable)."""
-        for number in ("LU26375245", "DK13585628", "FI26606369"):
+    def test_selection_interleaves_countries_deterministically(self, conn) -> None:
+        """Round-robin across countries: consecutive calls never hammer one
+        member state (per-MS saturation, sample run of 2026-09-08), while the
+        order stays fully deterministic (resumable, predictable)."""
+        for number in ("BE0605238824", "BE1628475293", "DK13585628", "FI26606369"):
             seed(conn, number)
         check = RecordingCheck(
             {
+                "BE0605238824": invalid_body("BE", "0605238824"),
+                "BE1628475293": invalid_body("BE", "1628475293"),
                 "DK13585628": invalid_body("DK", "13585628"),
                 "FI26606369": invalid_body("FI", "26606369"),
-                "LU26375245": invalid_body("LU", "26375245"),
             }
         )
         run_campaign(conn, check, pause_s=0.0)
-        assert check.calls == ["DK13585628", "FI26606369", "LU26375245"]
+        assert check.calls == [
+            "BE0605238824",  # cycle 1: one number per country...
+            "DK13585628",
+            "FI26606369",
+            "BE1628475293",  # cycle 2: back to the countries with numbers left
+        ]
 
     def test_limit_caps_the_calls_sample_mode(self, conn) -> None:
         """With limit=2, only the first two selected numbers are called."""
