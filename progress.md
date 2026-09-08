@@ -30,14 +30,16 @@ Session : 949d9450-0d8d-49b9-8cc6-4d97c39a953d
 - Rien de suspendu — coupe volontaire sur jalon J1 propre
 
 ## Prochaines étapes
-1. J2 matin : 3 appels VIES à la main (bon / clé fausse / inventé), lire
-   TOUTES les réponses — matière pour D5 (TTL) ; puis quelques dizaines
-   d'appels d'affilée en observant les cas non passants
-2. Trancher D5 (durée de validité d'un verdict) — note 02 § D5
+1. ~~Sondes VIES manuelles + salve de 40~~ FAIT (note 08, exploration/04-05)
+2. ~~Trancher D5~~ FAIT (note 02 § D5, CLAUDE.md)
 3. Campagne de vérification : mode échantillon (~200), temporisation,
    journalisation (structlog), reprise après interruption (test-first)
 4. J2 après-midi : API REST FastAPI (verdict + origine + fraîcheur,
    cas « VIES injoignable et rien en mémoire »), OpenAPI
+4bis. Fin J2 (rendu réel = vendredi soir) : sonde horaire de charge VIES
+   (cron, ~3 appels/h, réutilise exploration/04) pour cartographier la
+   période creuse ; run complet jeudi soir (nohup, machine allumée),
+   reprise vendredi matin si besoin — PAS d'orchestrateur
 5. Rapport de réconciliation reproductible par une commande
 6. Finalisation : note d'architecture (1 page), test du reclonage README,
    lien du repo sur la plateforme
@@ -54,7 +56,8 @@ Session : 949d9450-0d8d-49b9-8cc6-4d97c39a953d
   - D2 doublon = pays + numéro normalisé → décidé
   - D3 GB/UK invalide NON_EU_COUNTRY → décidé
   - D4 validation format + clés maison, oracle stdnum → décidé
-  - D5 TTL verdict VIES → DIFFÉRÉ (info attendue : réponses VIES réelles J2)
+  - D5 fraîcheur exposée sans péremption, stale > 7 j, TTL = cadence de
+    re-campagne (jamais de re-appel VIES à la requête) → décidé (J2)
 - Workflow : commits directs sur main (exemption déclarée CLAUDE.md),
   garde-fous pre-commit + CI ; pas de trailers de co-authoring
 

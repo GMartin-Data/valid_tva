@@ -34,3 +34,8 @@ et exposer une API REST (verdict + origine + fraîcheur).
   implémentées à la main, testées contre `python-stdnum` (oracle en tests
   uniquement, jamais en prod). Incrémentale : format d'abord, clés pays par
   pays, dégradation gracieuse si le temps manque.
+- D5 : fraîcheur exposée, pas de péremption — l'API renvoie toujours le
+  verdict stocké + son âge (jamais de re-appel VIES à la requête) ;
+  `stale: true` au-delà de 7 jours (paramètre assumé arbitraire, cadence de
+  re-campagne hebdomadaire). Ne concerne que les verdicts VIES : structurel =
+  déterministe (pas de TTL), indéterminé = pas un verdict (retry, pas TTL).
