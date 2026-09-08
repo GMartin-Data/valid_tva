@@ -38,3 +38,32 @@ def conn(test_db: str) -> psycopg.Connection:
         connection.execute("TRUNCATE referential_rows, vat_numbers")
         connection.commit()
         yield connection
+
+
+def seed(
+    conn: psycopg.Connection,
+    number: str,
+    status: str | None = None,
+    checked_days_ago: int | None = None,
+    name: str | None = None,
+    address: str | None = None,
+) -> None:
+    """Insert one canonical number, optionally with an observed VIES verdict."""
+    conn.execute(
+        "INSERT INTO vat_numbers (vat_number, country, national,"
+        " vies_status, vies_checked_at, vies_name, vies_address)"
+        " VALUES (%s, %s, %s, %s,"
+        " CASE WHEN %s::int IS NULL THEN NULL"
+        "      ELSE now() - make_interval(days => %s) END, %s, %s)",
+        (
+            number,
+            number[:2],
+            number[2:],
+            status,
+            checked_days_ago,
+            checked_days_ago,
+            name,
+            address,
+        ),
+    )
+    conn.commit()

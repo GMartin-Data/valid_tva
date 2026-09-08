@@ -9,7 +9,7 @@ raising httpx.HTTPError for transport failures.
 Contract under test (decisions D5 + notes/08 taxonomy):
 - selection: never-checked (NULL), always-retryable 'unknown', and stale
   verdicts (> stale_after_days); fresh verdicts are left alone; deterministic
-  ORDER BY vat_number; `limit` caps the calls (sample mode);
+  country round-robin order; `limit` caps the calls (sample mode);
 - mapping: valid true/false -> 'valid'/'invalid'; wrapped error or transport
   error -> 'unknown', never 'invalid'; requestDate -> vies_checked_at;
 - resume: one commit per number, so an interruption keeps acquired verdicts
@@ -24,6 +24,7 @@ import httpx
 import psycopg
 import pytest
 
+from conftest import seed
 from valid_tva.campaign import run_campaign
 
 
@@ -79,24 +80,6 @@ class RecordingCheck:
         if isinstance(outcome, BaseException):
             raise outcome
         return outcome
-
-
-def seed(
-    conn: psycopg.Connection,
-    number: str,
-    status: str | None = None,
-    checked_days_ago: int | None = None,
-) -> None:
-    """Insert one canonical number, optionally with a prior verdict."""
-    conn.execute(
-        "INSERT INTO vat_numbers (vat_number, country, national,"
-        " vies_status, vies_checked_at)"
-        " VALUES (%s, %s, %s, %s,"
-        " CASE WHEN %s::int IS NULL THEN NULL"
-        "      ELSE now() - make_interval(days => %s) END)",
-        (number, number[:2], number[2:], status, checked_days_ago, checked_days_ago),
-    )
-    conn.commit()
 
 
 def status_of(conn: psycopg.Connection, number: str) -> tuple:
