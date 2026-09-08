@@ -17,8 +17,8 @@ from collections.abc import Callable, Iterator
 from datetime import UTC, datetime, timedelta
 
 import psycopg
-from fastapi import Depends, FastAPI
-from pydantic import BaseModel
+from fastapi import Depends, FastAPI, Path, Query
+from pydantic import BaseModel, Field
 
 from valid_tva.db import connect
 from valid_tva.structural import assess
@@ -27,15 +27,56 @@ from valid_tva.structural import assess
 class Verdict(BaseModel):
     """What the referential knows about one number, and how fresh it is."""
 
-    input: str
-    vat_number: str | None
-    verdict: str
-    origin: str
-    motive: str | None
-    checked_at: datetime | None
-    stale: bool | None
-    name: str | None
-    address: str | None
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "input": "be 0415-621.046",
+                    "vat_number": "BE0415621046",
+                    "verdict": "valid",
+                    "origin": "vies",
+                    "motive": None,
+                    "checked_at": "2026-09-08T10:06:52.095000Z",
+                    "stale": False,
+                    "name": "NV PLUTO",
+                    "address": "Merellaan 46\n9400 Ninove",
+                }
+            ]
+        }
+    }
+
+    input: str = Field(description="The number exactly as received.")
+    vat_number: str | None = Field(
+        description="Canonical number (country prefix + national part) after"
+        " normalization; null when no country could be determined."
+    )
+    verdict: str = Field(
+        description="valid | invalid | unknown — unknown means the question"
+        " could not be answered yet, never that the number is bad."
+    )
+    origin: str = Field(
+        description="Where the verdict comes from: 'structural' (deterministic"
+        " check, motive given, VIES never involved), 'vies' (observed by the"
+        " verification campaign), 'never_checked' (no VIES attempt yet)."
+    )
+    motive: str | None = Field(
+        description="Structural rejection motive (MISSING, UNKNOWN_COUNTRY,"
+        " NON_EU_COUNTRY, BAD_FORMAT, BAD_CHECK_DIGIT); null otherwise."
+    )
+    checked_at: datetime | None = Field(
+        description="VIES consultation timestamp (requestDate) backing the"
+        " verdict; null when origin is not 'vies'."
+    )
+    stale: bool | None = Field(
+        description="True when the VIES verdict is older than the freshness"
+        " horizon (7 days): still served, flagged for the consumer to judge."
+    )
+    name: str | None = Field(
+        description="Registered company name as returned by VIES, when any."
+    )
+    address: str | None = Field(
+        description="Registered address as returned by VIES, when any."
+    )
 
 
 def create_app(
@@ -56,14 +97,30 @@ def create_app(
         finally:
             conn.close()
 
-    @app.get("/vat/{number}", response_model=Verdict)
+    @app.get(
+        "/vat/{number}",
+        response_model=Verdict,
+        summary="Qualify one VAT number",
+        description="Entry noise (spaces, dots, dashes, case) is normalized"
+        " away before assessment. Every verdict is a 200 — 'invalid' is an"
+        " answer, not an error. The API never calls VIES live: the structural"
+        " stage is recomputed on the fly, the VIES stage is read as observed"
+        " by the verification campaign.",
+    )
     def check_number(
-        number: str,
+        number: str = Path(
+            description="The VAT number to qualify, noise tolerated"
+            " (e.g. 'fi 2660-63.69').",
+        ),
         # Depends-as-default (not Annotated): with postponed annotations the
         # Annotated form becomes a string referencing the closure-local `db`,
         # which FastAPI cannot resolve at runtime.
         conn: psycopg.Connection = Depends(db),  # noqa: B008
-        country: str = "",
+        country: str = Query(
+            default="",
+            description="Declared country (ISO 3166-1 alpha-2), used only to"
+            " rebuild the prefix of a number received without one.",
+        ),
     ) -> Verdict:
         """Assess structure live, then read the observed VIES verdict."""
         result = assess(number, country)
