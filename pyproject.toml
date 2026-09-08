@@ -37,6 +37,11 @@ select = [
 ignore = [
     "E501", # line length is the formatter's job
 ]
+
+[tool.ruff.lint.isort]
+# Pin the classification: inference from `src` proved unstable during --fix
+# (third-party vs first-party flip-flop, poisoned cache, red CI on 2026-09-08).
+known-first-party = ["valid_tva"]
 [tool.pytest.ini_options]
 pythonpath = ["src", "tests"]
 testpaths = ["tests"]

@@ -23,6 +23,7 @@ from datetime import UTC, datetime
 import httpx
 import psycopg
 import pytest
+
 from valid_tva.campaign import run_campaign
 
 
