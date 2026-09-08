@@ -150,3 +150,37 @@
 - Client VIES **injectable** : les tests rejouent les corps observés le matin
   même, aucun réseau dans la suite. Fixtures de base jetable mutualisées dans
   `tests/conftest.py` au passage.
+
+### Campagne — du rouge au vert, et le client réel
+
+- Implémentation `src/valid_tva/campaign.py` : vert du premier coup
+  (108 tests). Sélection SQL, mapping (`'---'`/`''` → NULL), commit par
+  numéro — la reprise après interruption découle de ce choix, elle n'est pas
+  un mécanisme ajouté. Journalisation structlog.
+- Client réel `ViesClient` (httpx, timeout 30 s justifié par la salve du
+  matin, connexion réutilisée) + CLI `python -m valid_tva.campaign --limit N`.
+  Corps non-JSON (page HTML d'un proxy) → `{"raw": ...}` tronqué à 500
+  caractères : diagnostic humain seulement, lignes de log bornées — gestion
+  d'erreur à la frontière réelle qu'est un service externe.
+
+### Incident : le cache ruff qui mentait (écho de la leçon J1)
+
+- Push du jalon → **CI rouge** (`I001`, imports mal triés dans
+  `tests/test_campaign.py`) alors que pre-commit et lint local affichaient
+  « Passed ».
+- Diagnostic par élimination : versions ruff identiques (v0.16.6 partout),
+  pas d'exclude, pas de gitignore en cause… jusqu'à `--no-cache` : **échec
+  identique à la CI**. Cause racine en deux temps : (1) un `ruff check
+  --fix` antérieur avait lui-même produit le mauvais tri (classification
+  first-party de `valid_tva` instable pendant le fix) et écrit « 0
+  diagnostic » dans `.ruff_cache` ; (2) tous les contrôles locaux suivants
+  — pre-commit compris, même cache — relisaient cette entrée empoisonnée
+  en 0,01 s sans analyser.
+- Réparation en trois couches : le symptôme (tri corrigé), la cause
+  (`known-first-party = ["valid_tva"]` épinglé dans `pyproject.toml` — plus
+  d'inférence), la vérification (`ruff clean` + lint/format/tests à froid,
+  CI verte).
+- Leçon, jumelle de l'`EXE001` de J1 : **un lint caché peut mentir ; la CI
+  à froid est l'arbitre.** Après un `--fix` au résultat surprenant,
+  revérifier avec `--no-cache` ; et ne pas laisser un linter *inférer* une
+  frontière (first-party vs third-party) qu'on peut déclarer.
