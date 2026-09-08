@@ -184,3 +184,22 @@
   à froid est l'arbitre.** Après un `--fix` au résultat surprenant,
   revérifier avec `--no-cache` ; et ne pas laisser un linter *inférer* une
   frontière (first-party vs third-party) qu'on peut déclarer.
+
+### Échantillons de campagne : mesure → correctif → re-mesure (×4,5)
+
+- Run 1 (200 numéros, 12h01) : **56,5 % d'indéterminés**. Diagnostic :
+  `ORDER BY vat_number` regroupe par pays → 9 minutes à marteler le seul
+  registre belge, face à une limite de saturation *par État membre*. Effet
+  secondaire de charge d'un choix fait pour la prévisibilité — révélé
+  uniquement par le run réel, invisible dans les tests.
+- Lacune corrigée au passage : le log `wrapped_error` n'embarquait pas le
+  code d'erreur brut (réflexe pourtant noté le matin même dans la fiche
+  « erreur applicative sous HTTP 200 » — l'écart entre savoir et appliquer).
+- Correctif test-first : contrat d'ordre mis à jour (round-robin par pays,
+  toujours déterministe donc toujours reprenable), rouge → vert, 108 tests.
+- Run 2 (200 numéros, 12h21) : **12,5 % d'indéterminés** (tous
+  `MS_MAX_CONCURRENT_REQ`, désormais prouvé par les logs) ; ~75 % des
+  `unknown` belges repris convergent au second essai — le retry par
+  re-éligibilité fonctionne sans mécanisme dédié. Cadence ~1,55 s/numéro →
+  run complet estimé ≈ 2 h 40, compatible avec la fenêtre de jeudi soir.
+- ~400 verdicts réels en base à l'issue de la pause méridienne.
