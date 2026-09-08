@@ -80,8 +80,8 @@ class TestViesVerdicts:
 
     def test_never_checked_candidate(self, conn, client) -> None:
         """In the referential, structurally fine, no VIES attempt yet."""
-        seed(conn, "PT50072677")
-        body = client.get("/vat/PT50072677").json()
+        seed(conn, "PT787327239")
+        body = client.get("/vat/PT787327239").json()
         assert (body["verdict"], body["origin"]) == ("unknown", "never_checked")
         assert body["checked_at"] is None
         assert body["stale"] is None
