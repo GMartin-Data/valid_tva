@@ -5,6 +5,7 @@ requires-python = ">=3.13"
 dependencies = [
     "httpx>=0.28.1",
     "psycopg[binary]>=3.3.5",
+    "structlog>=26.1.0",
 ]
 
 [dependency-groups]
