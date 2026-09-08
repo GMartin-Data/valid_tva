@@ -104,3 +104,49 @@
   unique local/hooks/CI) + `chmod +x` des scripts à shebang. Leçon : une
   config de lint non versionnée rend le lint non reproductible — la CI
   l'a révélé dès son premier run.
+
+## J2 — 2026-09-08
+
+### Matinée — lire VIES sur pièces, trancher D5
+
+- Sondes manuelles (`exploration/04_vies_manual_probes.py`, détail note 08) :
+  bon (`valid=true` + nom/adresse réels), clé fausse, numéro inventé à clé
+  correcte. Lecture fine : la clé fausse répond en 35 ms avec `name='---'`
+  (tranchée sans consulter le registre), l'inventé bien formé subit la latence
+  de consultation et revient avec `name=''` — VIES distingue les deux cas en
+  creux.
+- **Découverte non anticipée : `MS_MAX_CONCURRENT_REQ`** — saturation des
+  requêtes simultanées vers un État membre, renvoyée en **HTTP 200** avec un
+  corps d'erreur (`actionSucceed=false`), comme `INVALID_INPUT` en J1. Le
+  numéro Saint-Gobain des tutoriels y bute systématiquement ; pattern
+  « erreur applicative sous HTTP 200 » : un client qui ne lit que le statut
+  HTTP fabriquerait des faux invalides.
+- Salve de 40 appels réels (`exploration/05_vies_burst.py`) : 29 `false`,
+  2 `true` (le référentiel synthétique contient de vrais numéros !),
+  **9 saturations (22,5 %)** réparties sur DK/BE/NL/FR — phénomène de charge
+  en heure de pointe européenne, pas une spécificité française. Latence par
+  issue : saturation = rejet rapide, `valid=true` jusqu'à 11,9 s → le timeout
+  de campagne reste généreux (30 s) sous peine de perdre les valides.
+- En-têtes HTTP : `cache-control: no-store`, pas d'ETag — **aucune indication
+  de fraîcheur protocolaire** ; seul `requestDate` (corps) horodate un verdict.
+- **D5 tranchée** (détail note 02) : fraîcheur *exposée*, pas de péremption —
+  l'API renvoie toujours le verdict stocké + son âge (jamais de re-appel VIES
+  à la requête), `stale: true` au-delà de 7 jours (paramètre assumé
+  arbitraire, cadence de re-campagne hebdomadaire). Périmètre : verdicts VIES
+  uniquement — le structurel est déterministe (pas de TTL), l'indéterminé est
+  une absence de verdict (retry, pas TTL).
+- Timeline recalée : rendu effectif vendredi soir → run complet planifié
+  jeudi soir (creux de charge, fraîcheur maximale au rendu) ; une sonde
+  horaire de charge viendra le confirmer en fin de J2 — sans orchestrateur,
+  un cron suffit.
+
+### Campagne de vérification — contrat rouge
+
+- Contrat d'intégration commité avant l'implémentation (9 tests,
+  `tests/test_campaign.py`) : sélection (jamais vérifié + `unknown` toujours
+  rejouable + périmé > 7 j ; ordre déterministe ; `limit` = mode échantillon),
+  mapping des corps réels de la note 08 (`errorWrappers` → `unknown`, jamais
+  `invalid`), reprise après interruption (commit par numéro).
+- Client VIES **injectable** : les tests rejouent les corps observés le matin
+  même, aucun réseau dans la suite. Fixtures de base jetable mutualisées dans
+  `tests/conftest.py` au passage.
