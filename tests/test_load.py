@@ -1,8 +1,6 @@
 """Integration tests for the idempotent loader (need the compose PostgreSQL).
 
-Skipped cleanly when no server answers on the configured port. Tests run
-against a throwaway database (tva_test), rebuilt at every session: the real
-referential database is never touched.
+Database fixtures (throwaway tva_test) live in conftest.py.
 
 The fixture CSV covers every path: candidate, noisy duplicate pair, rebuilt
 prefix, disguised emptiness, unknown country, bad format, bad check digit.
@@ -15,10 +13,7 @@ from pathlib import Path
 import psycopg
 import pytest
 
-from valid_tva.db import connect, connection_string
-from valid_tva.load import apply_schema, load_csv
-
-TEST_DB = "tva_test"
+from valid_tva.load import load_csv
 
 FIXTURE_CSV = """\
 id,raison_sociale,pays_declare,numero_tva,date_saisie,source_saisie
@@ -30,29 +25,6 @@ id,raison_sociale,pays_declare,numero_tva,date_saisie,source_saisie
 6,Echo ApS,DK,DK1234567,2024-06-01,portail_client
 7,Foxtrot ApS,DK,13585629,2024-07-01,crm
 """
-
-
-@pytest.fixture(scope="session")
-def test_db() -> str:
-    """Rebuild a throwaway database, or skip when PostgreSQL is unreachable."""
-    try:
-        admin = psycopg.connect(connection_string("postgres"), autocommit=True)
-    except psycopg.OperationalError:
-        pytest.skip("PostgreSQL not reachable (run: docker compose up -d)")
-    admin.execute(f"DROP DATABASE IF EXISTS {TEST_DB} WITH (FORCE)")
-    admin.execute(f"CREATE DATABASE {TEST_DB}")
-    admin.close()
-    return TEST_DB
-
-
-@pytest.fixture
-def conn(test_db: str) -> psycopg.Connection:
-    """Fresh connection per test, schema applied, tables emptied."""
-    with connect(test_db) as connection:
-        apply_schema(connection)
-        connection.execute("TRUNCATE referential_rows, vat_numbers")
-        connection.commit()
-        yield connection
 
 
 @pytest.fixture
