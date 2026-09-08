@@ -202,4 +202,45 @@
   `unknown` belges repris convergent au second essai — le retry par
   re-éligibilité fonctionne sans mécanisme dédié. Cadence ~1,55 s/numéro →
   run complet estimé ≈ 2 h 40, compatible avec la fenêtre de jeudi soir.
-- ~400 verdicts réels en base à l'issue de la pause méridienne.
+- 380 numéros distincts touchés (262 verdicts déterminés, 118 `unknown`
+  rejouables) — comptage vérifié en base, recoupé à l'unité près.
+
+### Après-midi — API REST (test-first) et Swagger
+
+- Contrat rouge de 12 tests avant toute implémentation : verdict + origine
+  (`structural` / `vies` / `never_checked`) + fraîcheur D5 (`stale` au-delà
+  de 7 j, verdict toujours servi), bruit normalisé, `?country=` (pendant
+  API de D1), tout verdict en HTTP 200. App factory injectable
+  (`create_app(get_conn)`) : les tests pointent la base jetable, même
+  philosophie que le client VIES injectable de la campagne.
+- **L'API ne parle jamais à VIES** (conséquence directe de D5) : structurel
+  recalculé à la volée (déterministe), observé lu en base. Le cas « VIES
+  injoignable » du brief est absorbé par l'architecture au lieu d'être géré.
+- Piège technique du jour : `from __future__ import annotations` +
+  dépendance FastAPI définie en closure → la forme `Annotated[...,
+  Depends(db)]` devient une chaîne irrésoluble (ForwardRef vers un nom
+  local). Retour à la forme `= Depends(db)` avec `noqa: B008` documenté.
+- Deux erreurs dans mes propres données de test, débusquées par le rouge et
+  le smoke test : un numéro PT inventé structurellement faux (l'API avait
+  raison de le rejeter), et l'étiquette « Amazon = valide en base » alors
+  qu'il est hors référentiel (`never_checked` correct). Le smoke test réel
+  (uvicorn + curl, 4 familles de réponses, cas nominal NV PLUTO) reste
+  irremplaçable même avec un contrat vert.
+- OpenAPI enrichi (vérifié sur le document généré) : résumé et description
+  d'endpoint, paramètres documentés, 9 champs de `Verdict` décrits avec les
+  sémantiques clés (« unknown ≠ mauvais numéro », « stale : servi, signalé,
+  au consommateur de juger »), exemple complet.
+
+### Fin J2 — sonde horaire de charge (la fenêtre de tir devient une mesure)
+
+- `exploration/06` : 3 appels/heure vers FR, BE, DK (témoins les plus
+  saturés), une ligne CSV par mesure, série accumulée jusqu'à jeudi.
+  Installée en cron (minute 17 ; chemin absolu vers uv — PATH minimal de
+  cron ; sortie vers un .log, pas /dev/null). Chaîne validée en
+  environnement cron simulé (`env -i`).
+- **Critère de décision fixé avant les données** : fenêtre de lancement =
+  début de la plage contiguë ≥ 3 h au taux de saturation minimal sur ~48 h
+  de mesures, départage par latence médiane ; cas dégradé (pas de creux
+  net) = lancement jeudi ~22h quand même, les `unknown` se rejouant
+  vendredi matin. La sonde optimise le premier passage, elle ne
+  conditionne pas la faisabilité.
