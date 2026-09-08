@@ -14,6 +14,8 @@ a wrapped error (`errorWrappers`) or a transport error -> 'unknown', never
 
 from __future__ import annotations
 
+import argparse
+import json
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -23,9 +25,13 @@ import httpx
 import psycopg
 import structlog
 
+from valid_tva.db import connect
+
 logger = structlog.get_logger(__name__)
 
 CheckFn = Callable[[str, str], dict]
+
+VIES_URL = "https://ec.europa.eu/taxation_customs/vies/rest-api/check-vat-number"
 
 SELECT_TARGETS = """
     SELECT vat_number, country, national
@@ -118,3 +124,60 @@ def run_campaign(
 
     log.info("campaign_finished", **vars(summary))
     return summary
+
+
+class ViesClient:
+    """Real VIES REST client, one reused HTTP connection for the whole run.
+
+    An unparseable body (usually an HTML page from a proxy or maintenance
+    front) is returned as {"raw": ...}: no `valid` key, so the campaign maps
+    it to 'unknown' like any other wrapped anomaly. The text is truncated:
+    diagnostic only, keeps log lines bounded whatever the upstream sends.
+    """
+
+    def __init__(self, timeout_s: float = 30.0) -> None:
+        """Open the underlying HTTP client (generous timeout, notes/08)."""
+        self._client = httpx.Client(timeout=timeout_s)
+
+    def __call__(self, country: str, national: str) -> dict:
+        """POST one check-vat-number request and return the raw JSON body."""
+        resp = self._client.post(
+            VIES_URL, json={"countryCode": country, "vatNumber": national}
+        )
+        try:
+            return resp.json()
+        except json.JSONDecodeError:
+            return {"raw": resp.text[:500]}
+
+    def __enter__(self) -> ViesClient:
+        """Enter: the client is already open."""
+        return self
+
+    def __exit__(self, *exc_info: object) -> None:
+        """Close the underlying HTTP client."""
+        self._client.close()
+
+
+def main(argv: list[str] | None = None) -> None:
+    """CLI entry point: run a campaign against the real referential and VIES."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--limit", type=int, default=None, help="sample mode")
+    parser.add_argument("--pause", type=float, default=0.5)
+    parser.add_argument("--stale-days", type=int, default=7)
+    args = parser.parse_args(argv)
+    with connect() as conn, ViesClient() as check:
+        summary = run_campaign(
+            conn,
+            check,
+            limit=args.limit,
+            stale_after_days=args.stale_days,
+            pause_s=args.pause,
+        )
+    print(f"checked: {summary.checked}")
+    print(f"  valid: {summary.valid}")
+    print(f"  invalid: {summary.invalid}")
+    print(f"  unknown: {summary.unknown}")
+
+
+if __name__ == "__main__":
+    main()
