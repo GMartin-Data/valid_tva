@@ -301,3 +301,45 @@
   conception, entrelacement chiffré (56,5 % → 12,5 %), pas de retry
   in-run (le retry vit un étage au-dessus : re-éligibilité en base),
   fenêtre mesurée avec critère a priori.
+
+### Après-midi — run complet, passages successifs, reclonage
+
+- **Run complet terminé à 12h31** : 6 049 appels en 3 h 31, sans
+  interruption — 174 valid, 4 654 invalid, 1 221 unknown (19 %). Plus
+  aucun numéro `never_checked` : chaque distinct porte un statut. Durée
+  au-dessus de l'estimation échantillon (2 h 40) : la saturation de
+  mi-journée ralentit, la sonde l'avait laissé prévoir.
+- **2ᵉ passage immédiat** (12h45 → 13h43) : la même commande, sans
+  option — la sélection ne represente que les 1 221 unknown
+  (`targets=1221` : la reprise par conception, démontrée en vraie
+  grandeur). **602 convergent (49 %)** : 570 invalid, 32 valid ;
+  619 unknown résiduels (9,8 % des distincts).
+- Lecture du résidu : **81 % français** (504 FR, 75 BE, 24 NL). Pas le
+  BE saturé en continu — la France, saturée *en journée* selon la sonde
+  mais calme vers 21h-22h → **3ᵉ passage armé pour 21h30** (processus
+  différé, même mécanique que le matin). Verdicts frais de la veille au
+  soir pour la démo.
+- **Test de reclonage README** (le « test qui compte » du brief) : clone
+  GitHub vierge, stack Docker isolée (le projet compose est déterminé par
+  le répertoire → volume distinct, base intacte), README déroulé à la
+  lettre : chargement recoupé à l'unité près, campagne échantillon 200
+  (166 invalid / 33 unknown / 1 valid), rapports, API sur port par
+  défaut. Deux prises du filet de sécurité : **7 commits du jour non
+  poussés** détectés avant le clone (le test aurait échoué à tort), et
+  un `compose up` relancé depuis le mauvais répertoire pendant le
+  démontage (stack vide recréée — sans gravité, volumes distincts, mais
+  piège noté : compose ≡ répertoire courant).
+- Rapport de réconciliation complété (motifs de rejet + doublons
+  explicites en une commande — l'exigence du brief relue au mot près) ;
+  relecture méticuleuse de toute la doc interne : résidus d'états
+  transitoires purgés (« section à venir », durée de sonde, `--wait`
+  manquant au pas-à-pas), l'exemple JSON du README re-vérifié en live —
+  encore exact à l'octet, protégé par D5 (verdict frais jamais re-vérifié).
+- README refondu en vitrine : résultats et question du brief en tête,
+  pipeline Mermaid, badges de stack, pas-à-pas replié, sémantique API en
+  tableau. Une régression attrapée en relecture : la table
+  « technologies et justification » (exigence explicite du brief) avait
+  sauté dans la refonte — restaurée.
+- Préparation de démo (hors repo) : antisèche-runbook, visuels générés
+  depuis les données (entonnoir, heatmap de sonde, cycle de reprise),
+  raccourcis de session. CI verte, tout poussé.
