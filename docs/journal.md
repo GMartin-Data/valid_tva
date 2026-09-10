@@ -244,3 +244,60 @@
   net) = lancement jeudi ~22h quand même, les `unknown` se rejouant
   vendredi matin. La sonde optimise le premier passage, elle ne
   conditionne pas la faisabilité.
+
+## J3 — 2026-09-10
+
+### Matinée — la sonde parle, le plan pivote, le run part
+
+- Bilan de la sonde au réveil : **aucun trou en ~44 h** (cron minute 17,
+  machine restée allumée), 24/24 heures locales couvertes. Le dispositif
+  minimal (cron + CSV en append) a tenu sans orchestrateur.
+- Exploitation anticipée (`exploration/07_launch_window.py`) : agrégation
+  par heure **locale** (Europe/Paris — la décision de lancement est
+  locale) × pays, classement des 24 fenêtres circulaires de 3 h par
+  (taux de saturation, latence médiane des appels réussis) — le critère
+  fixé en J2, appliqué tel quel.
+- Deux verdicts de la sonde, plus précieux que le classement lui-même :
+  - **BE est saturé quasi en permanence** (100 % sur presque toutes les
+    heures, nuit comprise) — confirmation à l'échelle de 2 jours que la
+    saturation est bien par État membre, et qu'aucune « heure creuse »
+    ne la lève pour les plus chargés.
+  - **L'hypothèse « nuit creuse » est réfutée** : 83 % d'échecs à minuit,
+    67 % à 3 h et 5 h. Le pari intuitif « lancer à 22h » — celui du plan
+    initial — aurait été un mauvais pari. La mesure a battu l'intuition,
+    c'était son travail.
+- **Pivot de plan sous contrainte externe** : tirage au sort → démo à
+  assurer vendredi, horaire incertain. Priorité inversée : disposer du
+  référentiel complet *aujourd'hui* vaut plus que la fenêtre optimale.
+  Convergence heureuse : au moment de la décision (8h25), la fenêtre en
+  tête du classement (**09h–12h, 33 % de saturation**) commençait 35
+  minutes plus tard. Avancer le run de jeudi soir à jeudi matin fait
+  aussi passer de 1 à 3 cycles de reprise possibles avant la démo.
+  Fragilité assumée : les heures 09h–13h n'avaient qu'un jour de mesures
+  (n=9) — la contrainte démo tranchait de toute façon.
+- Lancement **armé en différé** (8h32) : processus détaché unique
+  `sleep-jusqu'à-09h && campagne`, nohup, log hors repo — le déclenchement
+  est interne au processus, aucune intervention à 9h. Parti à 09:00:01 :
+  **6 049 cibles** (5 931 jamais vérifiés + 118 `unknown` rejoués).
+  Cadence constatée ~1,9 s/numéro → **~3 h 10 projetées** (l'estimation
+  échantillon disait 2 h 40 : la saturation de mi-journée ralentit), fin
+  vers 12h10.
+- **Rapport de réconciliation en une commande**
+  (`sql/verdict_reconciliation.sql`) : trois vues du même état — entonnoir
+  (10 000 → 3 376 rejets structurels → 6 624 candidates → 6 311 numéros
+  distincts), état de campagne par numéro distinct, qualification des
+  10 000 lignes en **verdict × origine, vocabulaire exactement aligné sur
+  l'API** (`valid/invalid/unknown` × `structural/vies/never_checked`).
+  Non-recouvrement avec la note d'architecture : la note porte les
+  décisions et leurs raisons, le rapport porte les chiffres — toujours à
+  jour puisque recalculés de la base.
+- **Bug silencieux débusqué dans le README** : `docker exec` sans `-i` ne
+  transmet pas la redirection stdin — psql lit un flux vide et sort en
+  `exit 0` **sans rien afficher**. La commande de rapport J1 documentée ne
+  produisait donc rien, sans erreur. Leçon : un `exit 0` muet n'est pas
+  une preuve ; une commande documentée doit être rejouée *telle qu'écrite*
+  (le test de reclonage de vendredi existe pour ça).
+- Note d'architecture complétée (sections campagne et D5) : reprise par
+  conception, entrelacement chiffré (56,5 % → 12,5 %), pas de retry
+  in-run (le retry vit un étage au-dessus : re-éligibilité en base),
+  fenêtre mesurée avec critère a priori.
