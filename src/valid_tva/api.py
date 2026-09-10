@@ -143,7 +143,10 @@ def create_app(
             (result.normalized,),
         ).fetchone()
         status, checked_at, name, address = row or (None, None, None, None)
-        if status is None:
+        # The campaign always writes status and checked_at together; a row
+        # missing either carries no usable VIES observation (D5: a verdict
+        # without its date cannot be served).
+        if status is None or checked_at is None:
             return Verdict(
                 input=number,
                 vat_number=result.normalized,
