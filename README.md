@@ -42,8 +42,9 @@ docker exec -i meridian_tva_db psql -U meridian -d tva -f - < sql/motive_distrib
 #    verdicts périmés sont repris à chaque passage ; --limit = mode échantillon)
 uv run python -m valid_tva.campaign --limit 200
 
-# Rapport de réconciliation : entonnoir, état de campagne, qualification
-# des 10 000 lignes (verdict × origine, vocabulaire de l'API)
+# Rapport de réconciliation : entonnoir et doublons, motifs de rejet, état
+# de campagne, qualification des 10 000 lignes (verdict × origine,
+# vocabulaire de l'API)
 docker exec -i meridian_tva_db psql -U meridian -d tva -f - < sql/verdict_reconciliation.sql
 
 # 6. API de vérification
