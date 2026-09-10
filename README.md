@@ -36,7 +36,7 @@ uv sync
 uv run python -m valid_tva.load
 
 # Répartition des verdicts structurels par motif
-docker exec meridian_tva_db psql -U meridian -d tva -f - < sql/motive_distribution.sql
+docker exec -i meridian_tva_db psql -U meridian -d tva -f - < sql/motive_distribution.sql
 
 # 5. Campagne de vérification VIES (rejouable : les indéterminés et les
 #    verdicts périmés sont repris à chaque passage ; --limit = mode échantillon)
