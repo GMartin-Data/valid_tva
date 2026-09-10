@@ -1,6 +1,68 @@
 # Progress — valid_tva
 
 ## Dernière mise à jour
+Date : 2026-09-10 14:42
+Session : c143998e-cfaa-4f99-aa94-92f42c430871
+
+## Tâches complétées
+- Fenêtre de tir : sonde exploitée, critère appliqué (exploration/07) —
+  détail → journal J3 matin
+- Run complet : 6 049 appels, 3 h 31, zéro perte — détail → journal J3 après-midi
+- 2ᵉ passage : 619 unknown résiduels (9,8 %), résidu 81 % FR — détail →
+  journal J3 après-midi
+- Rapport de réconciliation complet en une commande
+  (sql/verdict_reconciliation.sql, conforme brief : motifs + doublons) —
+  détail → journal J3
+- Test de reclonage README : PASSÉ (clone GitHub vierge, README à la lettre) —
+  détail → journal J3
+- README refondu en vitrine (résultats, mermaid, badges) ; doc interne relue,
+  résidus purgés
+- Fix Pyright api.py : garde status/checked_at appariés (ab3f69d) ;
+  120 tests verts, CI verte, tout poussé
+- Préparation démo (hors repo) : antisèche notes/09, 3 visuels + joker,
+  fonctions db()/vat()
+
+## En cours
+- **3ᵉ passage armé : PID 3165063, tir à 21h30** (processus détaché autonome —
+  seule exigence : machine allumée ; log ../brief_valid_tva/campaign-pass3.log)
+- Sonde horaire : cron toujours actif (à désarmer après la démo)
+
+## Prochaines étapes
+1. Ce soir : session d'entraînement Q&A sur instance fraîche (notes 07 + 09
+   en source)
+2. Vendredi matin : vérifier le 3ᵉ passage (log + rapport) ; **rafraîchir les
+   3 chiffres de la section Résultats du README** (commentaire HTML
+   `<!-- refresh after pass 3 -->` en place)
+3. Vendredi matin : check-list antisèche (Docker, db()/vat(), numéros du jour,
+   API 8321, visuels)
+4. **Lien du repo sur la plateforme** (à ne pas oublier)
+5. Démo (heure incertaine, possiblement après-midi)
+6. Après démo : désarmer le cron de la sonde ; /immunize sur les leçons de la
+   semaine
+
+## Écarts vs PRD
+- Pas de PRD (brief amendé fait foi) ; pivot assumé : run avancé de jeudi soir
+  à jeudi 9h (contrainte démo + hypothèse nuit réfutée) — détail → journal J3
+
+## Décisions prises
+- Track léger (sans ADR) — nouvelles décisions du jour, détail → journal J3 :
+  - Lancement 09h-12h (fenêtre en tête du critère + contrainte démo) → décidé
+  - 3ᵉ passage à 21h30 (résidu 81 % FR, créneau FR calme selon sonde) → décidé
+  - Pas de Makefile au repo ; raccourcis db()/vat() en session de démo
+    uniquement → décidé
+  - Chiffres vivants dans README : dérogation assumée, tamponnée + renvoi au
+    rapport → décidé
+
+## Blocages
+- Aucun. Points d'attention : machine allumée ce soir (21h30 → ~22h15) ;
+  port 8000 local occupé (API démo sur 8321) ; Docker Desktop à démarrer
+  demain matin
+
+---
+
+# Historique — J2 (fin)
+
+## Dernière mise à jour (J2)
 Date : 2026-09-08 15:25
 Session : 4d6c8de5-20a3-43e5-923a-2d614571f436
 
