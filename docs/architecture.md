@@ -1,7 +1,5 @@
 # Note d'architecture — valid_tva
 
-> Livrable final : 1 page. Sections chiffrées complétées au fil du projet.
-
 ## Décisions structurantes
 
 - **D1 — Numéros sans préfixe pays** (532 lignes) : reconstruction depuis
@@ -53,7 +51,7 @@ Les 532 numéros à préfixe reconstruit (D1) sont tous devenus candidats.
   la saturation même. Le retry vit un étage au-dessus : l'indéterminé reste
   éligible en base et le passage suivant de la campagne le reprend.
 - **Fenêtre de tir mesurée, critère fixé avant les données** : sonde horaire
-  (~48 h, FR/BE/DK) ; fenêtre contiguë ≥ 3 h à saturation minimale, départage
+  (~44 h, FR/BE/DK) ; fenêtre contiguë ≥ 3 h à saturation minimale, départage
   latence médiane. Verdict de la sonde : l'hypothèse « nuit creuse » est
   réfutée (BE saturé en continu, 83 % d'échecs à minuit) ; la fenêtre en tête
   est 09h–12h — le run complet y a été lancé.

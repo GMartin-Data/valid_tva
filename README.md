@@ -26,7 +26,7 @@ git clone <repo> && cd valid_tva
 
 # 2. Base PostgreSQL (port 5435 ; identifiants par défaut meridian/meridian/tva,
 #    surchargeables via variables d'environnement POSTGRES_*)
-docker compose up -d
+docker compose up -d --wait
 
 # 3. Dépendances Python
 uv sync
@@ -93,14 +93,12 @@ curl http://127.0.0.1:8000/vat/BE0415621046
   7 jours — le verdict est toujours servi, jamais retenu (décision D5) ;
   l'API ne contacte jamais VIES elle-même.
 
-*(section à venir : rapport de réconciliation)*
-
 ## Structure
 
 ```
 data/          référentiel source (CSV, 10 000 lignes)
 exploration/   scripts one-shot d'exploration (traçabilité, hors production)
 src/valid_tva/ code du pipeline et de l'API
-sql/           schéma PostgreSQL versionné
+sql/           schéma PostgreSQL et rapports SQL versionnés
 docs/          journal de bord, note d'architecture
 ```
