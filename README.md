@@ -51,6 +51,13 @@ docker exec -i meridian_tva_db psql -U meridian -d tva -f - < sql/verdict_reconc
 uv run uvicorn --factory valid_tva.api:app
 ```
 
+Tout-en-un — la pile complète (base attendue saine, dépendances, chargement,
+API) en une commande :
+
+```bash
+docker compose up -d --wait && uv sync && uv run python -m valid_tva.load && uv run uvicorn --factory valid_tva.api:app
+```
+
 Les variables `POSTGRES_*` (host, port, user, password, db) surchargent les
 défauts si besoin — aucun fichier d'environnement n'est requis.
 
