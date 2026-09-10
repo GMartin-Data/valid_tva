@@ -40,9 +40,33 @@ Le tamis clé à lui seul économise 1 332 appels (~40 min à la latence
 moyenne) — il justifie l'implémentation des algorithmes nationaux (D4).
 Les 532 numéros à préfixe reconstruit (D1) sont tous devenus candidats.
 
-## Durée de validité d'un verdict et traitement des indéterminés
+## Campagne VIES : reprise par conception, retry au bon étage
 
-*(à décider en J2, avec la campagne)*
+- **Verdict commité par numéro** : une interruption (crash, coupure) ne perd
+  rien — relancer la commande reprend exactement où le run s'est arrêté.
+- **Sélection entrelacée par pays** : la saturation VIES est par État membre
+  (`MS_MAX_CONCURRENT_REQ`, renvoyé sous HTTP 200). Un parcours alphabétique
+  concentre les appels sur un même État et s'auto-sature : 56,5 %
+  d'indéterminés mesurés, ramenés à 12,5 % par entrelacement.
+- **Pas de retry in-run** (pas de `tenacity`) : une erreur de capacité ne se
+  résout pas à l'échelle de la seconde — réessayer immédiatement entretient
+  la saturation même. Le retry vit un étage au-dessus : l'indéterminé reste
+  éligible en base et le passage suivant de la campagne le reprend.
+- **Fenêtre de tir mesurée, critère fixé avant les données** : sonde horaire
+  (~48 h, FR/BE/DK) ; fenêtre contiguë ≥ 3 h à saturation minimale, départage
+  latence médiane. Verdict de la sonde : l'hypothèse « nuit creuse » est
+  réfutée (BE saturé en continu, 83 % d'échecs à minuit) ; la fenêtre en tête
+  est 09h–12h — le run complet y a été lancé.
+
+## D5 — Fraîcheur exposée, jamais de péremption
+
+L'API sert toujours le verdict stocké accompagné de son âge — jamais de
+re-appel VIES à la requête (latence jusqu'à 8,6 s et saturation du service :
+le référentiel est fait pour être consulté, pas re-vérifié en ligne).
+`stale: true` au-delà de 7 jours — paramètre assumé arbitraire qui documente
+la cadence de re-campagne hebdomadaire. Ne concerne que les verdicts VIES :
+le verdict structurel est déterministe (pas de TTL), et l'indéterminé n'est
+pas un verdict mais une re-éligibilité (retry, pas TTL).
 
 ## Références
 
