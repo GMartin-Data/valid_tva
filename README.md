@@ -7,6 +7,7 @@
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
 ![uv](https://img.shields.io/badge/uv-261230?logo=uv&logoColor=white)
 ![Ruff](https://img.shields.io/badge/Ruff-D7FF64?logo=ruff&logoColor=black)
+![pytest](https://img.shields.io/badge/pytest-0A9EDC?logo=pytest&logoColor=white)
 
 Qualification d'un référentiel de 10 000 numéros de TVA (Meridian Distribution) :
 **valide / invalide / indéterminé**, via normalisation, validation structurelle,
