@@ -101,9 +101,10 @@ def run_campaign(
 ) -> CampaignSummary:
     """Check every number needing it, one committed verdict at a time."""
     targets = conn.execute(SELECT_TARGETS, (stale_after_days,)).fetchall()
+    eligible = len(targets)
     if limit is not None:
         targets = targets[:limit]
-    log = logger.bind(targets=len(targets))
+    log = logger.bind(targets=len(targets), eligible=eligible)
     log.info("campaign_started")
 
     summary = CampaignSummary()
