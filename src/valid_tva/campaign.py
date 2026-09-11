@@ -166,7 +166,7 @@ class ViesClient:
         """Enter: the client is already open."""
         return self
 
-    def __exit__(self, *_exc_info: object) -> None:
+    def __exit__(self, *_: object) -> None:
         """Close the underlying HTTP client."""
         self._client.close()
 
