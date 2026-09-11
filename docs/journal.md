@@ -343,3 +343,54 @@
 - Préparation de démo (hors repo) : antisèche-runbook, visuels générés
   depuis les données (entonnoir, heatmap de sonde, cycle de reprise),
   raccourcis de session. CI verte, tout poussé.
+
+## J4 — 2026-09-11 (matin, jour de démo)
+
+### Verdict du 3ᵉ passage, chiffres rafraîchis
+
+- Le tir de 21h30 s'est déroulé sans surveillance : 619/619 traités en
+  24 min, sortie propre. Récolte : **6 valid, 185 invalid — résidu ramené
+  à 428 unknown** (−31 %). Mais la fin du log est éloquente :
+  `MS_MAX_CONCURRENT_REQ` frappait encore les FR à 21h50. La fenêtre
+  « FR calme » de la sonde ne tient pas à cette échelle — la saturation
+  française est **structurelle, pas horaire**. Requalifié de constat
+  d'échec en argument de démo : c'est le cas dégénéré de l'entrelacement
+  (quand un pays domine le résidu, les vagues s'épuisent et il ne reste
+  que lui).
+- Rapport de réconciliation regénéré, section Résultats du README
+  rafraîchie (9 309 invalides / 455 indéterminés / 236 valides, total
+  10 000 recoupé) — le marqueur `refresh after pass 3` a rempli son
+  office et disparaît.
+
+### La répétition qui a sauvé la preuve
+
+- Répétition fidèle de la séquence 2 (interruption/reprise) : **les deux
+  runs affichaient `targets=20`** — le `--limit` tronque la sélection
+  *avant* le log, la chute de N (cœur de la preuve « relancer ne refait
+  pas ») était invisible. L'antisèche avait été écrite avant que le
+  détail ne soit observable ; seule la répétition en conditions réelles
+  pouvait l'attraper.
+- Correctif au bon étage : la campagne logge désormais `eligible`
+  (taille de la sélection avant troncature) sur `campaign_started` —
+  défendable en soi (« combien reste-t-il ? » est la première question
+  d'exploitation), pas un maquillage de démo. En démo : run 1
+  `eligible=6311`, relance `eligible=428` — la preuve tient en une ligne
+  de log par run, `--limit 20` conservé en garde-fou. Raffinement dans
+  la foulée : `eligible` scopé à l'événement de départ au lieu du
+  logger lié — un champ figé répété sur chaque `verdict_stored` se
+  faisait passer pour une jauge morte.
+
+### Silence Pyright avant l'ouverture du capot
+
+- Deux diagnostics purgés pour ouvrir les fichiers sereinement devant le
+  jury : le `*exc_info` inutilisé de `__exit__` (leçon au passage :
+  l'exemption Pyright exige le `_` nu, le préfixe underscore ne suffit
+  pas — plus strict que ruff) et le `str` dynamique refusé par
+  `conn.execute` dans le chargeur. Pour ce dernier, l'idiome psycopg :
+  `cast(LiteralString, ...)` — pas un contournement, une **déclaration
+  de confiance ciblée** (le DDL est versionné dans le repo), là où un
+  `type: ignore` aurait éteint la ligne entière en silence.
+- Badges laissés tels quels après examen : le badge CI porte le statut
+  vivant, les badges de stack décrivent — un « 120 tests » codé en dur
+  serait un chiffre vivant sans filet (drift garanti, aucun rapport pour
+  le rattraper). Le compte se dira à l'oral, où il se décompose.
