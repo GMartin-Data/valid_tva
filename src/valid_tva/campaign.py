@@ -104,8 +104,8 @@ def run_campaign(
     eligible = len(targets)
     if limit is not None:
         targets = targets[:limit]
-    log = logger.bind(targets=len(targets), eligible=eligible)
-    log.info("campaign_started")
+    log = logger.bind(targets=len(targets))
+    log.info("campaign_started", eligible=eligible)
 
     summary = CampaignSummary()
     for vat_number, country, national in targets:
