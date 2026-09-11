@@ -21,15 +21,14 @@ Brief pédagogique — formation Data Engineer, 2026. Auteur : Greg Martin.
 
 ## Résultats
 
-<!-- refresh after pass 3 (evening 2026-09-10) -->
-État au 10/09/2026 au soir (2 passages de campagne ; les indéterminés restent
+État au 11/09/2026 (3 passages de campagne ; les indéterminés restent
 re-vérifiables à chaque passage) :
 
 | Verdict | Lignes | Détail |
 |---|---:|---|
-| **Invalide** | 9 104 | 3 376 rejets structurels motivés + 5 728 invalidés par VIES |
-| **Indéterminé** | 667 | VIES saturé ou indisponible — jamais confondu avec invalide |
-| **Valide** | 229 | confirmés par VIES, nom et adresse à l'appui |
+| **Invalide** | 9 309 | 3 376 rejets structurels motivés + 5 933 invalidés par VIES |
+| **Indéterminé** | 455 | VIES saturé ou indisponible — jamais confondu avec invalide |
+| **Valide** | 236 | confirmés par VIES, nom et adresse à l'appui |
 
 La validation structurelle évite **3 689 appels VIES (−36,9 %)** avant le
 premier octet réseau. Chiffres recalculés depuis la base à chaque exécution du
