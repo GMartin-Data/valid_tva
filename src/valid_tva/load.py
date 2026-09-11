@@ -17,6 +17,7 @@ import csv
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import LiteralString, cast
 
 import psycopg
 
@@ -65,7 +66,9 @@ class LoadSummary:
 
 def apply_schema(conn: psycopg.Connection) -> None:
     """Apply sql/schema.sql (idempotent DDL) on the given connection."""
-    conn.execute(SCHEMA_PATH.read_text(encoding="utf-8"))
+    # psycopg types `execute` as LiteralString to block injection-prone
+    # dynamic SQL; this cast asserts the file is trusted, repo-versioned DDL.
+    conn.execute(cast(LiteralString, SCHEMA_PATH.read_text(encoding="utf-8")))
     conn.commit()
 
 
